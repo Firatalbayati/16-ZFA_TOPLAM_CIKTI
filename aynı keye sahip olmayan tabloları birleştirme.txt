@@ -1,0 +1,4 @@
+kna1-kunnr
+vbrk-kunag
+
+Alanların içi aynı oldugu için tabloların alanlarını key alan gibi birleştirdik inner join le

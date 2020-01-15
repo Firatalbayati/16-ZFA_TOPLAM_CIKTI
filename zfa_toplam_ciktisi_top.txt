@@ -1,0 +1,29 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZFA_TOPLAM_CIKTISI_TOP
+*&---------------------------------------------------------------------*
+
+TABLES : vbrk,
+         kna1,
+         vbrp.
+
+DATA: gt_outtab   TYPE TABLE OF zfas_cikti,
+      gs_outtab   TYPE zfas_cikti,
+      gt_fact     TYPE slis_t_fieldcat_alv,
+      gs_layout   TYPE slis_layout_alv,
+      answer(1)   TYPE c.
+
+DATA: lv_fmname TYPE rs38l_fnam,
+      lv_fname TYPE tdsfname.
+lv_fname = 'ZFA_SMATRFORMS'.
+
+
+TYPES : BEGIN OF gty_list,                          "sel kullanacaksak bunu kullanmak zorundayız
+          sel TYPE xfeld.
+        INCLUDE TYPE zfas_cikti.
+TYPES : END OF gty_list.
+
+DATA : gt_list     TYPE TABLE OF gty_list,
+       gt_list2    TYPE TABLE OF gty_list,
+       gt_detail   TYPE TABLE OF zfas_cikti,
+       gt_detail_l TYPE TABLE OF zfas_cikti,
+       gs_list     TYPE zfas_cikti.

@@ -1,0 +1,9 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZFA_TOPLAM_CIKTISI_SCRN
+*&---------------------------------------------------------------------*
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+SELECT-OPTIONS : s_posnr FOR vbrp-posnr NO-EXTENSION,
+                 s_matnr FOR vbrp-matnr NO-EXTENSION,
+                 s_kunnr FOR kna1-kunnr NO-EXTENSION OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b1.

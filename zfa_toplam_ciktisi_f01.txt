@@ -1,0 +1,155 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZFA_TOPLAM_CIKTISI_F01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Form  GET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+  FORM get_data .
+    SELECT rk~vbeln                "****************SELECT****************
+        rk~vkorg
+        rk~vtweg
+        rk~spart
+        rk~fkdat
+        rp~posnr
+        rp~matnr
+        rp~arktx
+        rp~fkimg
+        rp~netwr
+        kn~kunnr
+        kn~name1
+        kn~ort01
+        kn~land1
+        kn~pstlz
+ FROM vbrk AS rk INNER JOIN vbrp AS rp ON rk~vbeln EQ rp~vbeln
+                 INNER JOIN kna1 AS kn ON rk~kunag EQ kn~kunnr
+ INTO CORRESPONDING FIELDS OF TABLE gt_outtab
+ WHERE rp~posnr IN s_posnr
+ AND   rp~matnr IN s_matnr
+ AND   kn~kunnr IN s_kunnr.
+
+    LOOP AT gt_outtab ASSIGNING FIELD-SYMBOL(<fs_outtab>).      " gt_list isminde boş alanlar oluşturduk ve içine ..
+      APPEND INITIAL LINE TO gt_list ASSIGNING FIELD-SYMBOL(<fs_list>). " gt_outtab taki alanları doldurduk alv de görünsün diye
+      <fs_list>-vbeln = <fs_outtab>-vbeln.
+      <fs_list>-vkorg = <fs_outtab>-vkorg.
+      <fs_list>-vtweg = <fs_outtab>-vtweg.
+      <fs_list>-spart = <fs_outtab>-spart.
+      <fs_list>-fkdat = <fs_outtab>-fkdat.
+      <fs_list>-posnr = <fs_outtab>-posnr.
+      <fs_list>-matnr = <fs_outtab>-matnr.
+      <fs_list>-arktx = <fs_outtab>-arktx.
+      <fs_list>-fkimg = <fs_outtab>-fkimg.
+      <fs_list>-netwr = <fs_outtab>-netwr.
+      <fs_list>-kunnr = <fs_outtab>-kunnr.
+      <fs_list>-name1 = <fs_outtab>-name1.
+      <fs_list>-ort01 = <fs_outtab>-ort01.
+      <fs_list>-land1 = <fs_outtab>-land1.
+      <fs_list>-pstlz = <fs_outtab>-pstlz.
+    ENDLOOP.
+  ENDFORM.                    " GET_DATA
+
+
+  FORM set_pf_status USING rt_extab TYPE slis_t_extab.                      "******** YZDIR BUTTON*************
+    SET PF-STATUS 'STANDARD'.
+  ENDFORM.
+
+  FORM set_user_command USING r_ucomm TYPE sy-ucomm
+          rs_selfield  TYPE slis_selfield.
+    CASE '&YAZDIR'.
+        PERFORM get_smartform USING rs_selfield-tabindex.
+    ENDCASE.
+  ENDFORM.
+
+  FORM get_smartform USING rs_selfield-tabindex.
+
+    FREE gt_outtab. " SELDEN ÖNCE BUNU KULLANMASAK ALVDE GÖRÜNEN TÜM SATIRLARI EKRANA YAZAR , KISACA SEL ÇALIŞMAZ
+                    "FREE, dahili bir tablonun veya çalışma alanının hafızasını silmek için kullanılır.
+                    " Ne zaman bir iç masa veya çalışma alanı ilan ettiğimizde hepimiz biliyoruz, 8kb bellek tahsis edilecek.
+
+    LOOP AT gt_list ASSIGNING FIELD-SYMBOL(<fs_list>) WHERE sel EQ 'X'.            "************ SEL*************
+      APPEND INITIAL LINE TO gt_outtab ASSIGNING FIELD-SYMBOL(<fs_outtab>).        "*gt_list üste (gt_list TYPE TABLE OF gty_list)
+      <fs_outtab>-vbeln = <fs_list>-vbeln.                                         "* gt_outtab  isminde boş alanlar oluşturduk ve içine ..
+      <fs_outtab>-vkorg = <fs_list>-vkorg.                                         "* gt_list taki alanları doldurduk sel kullanmak için yazdık
+      <fs_outtab>-vtweg = <fs_list>-vtweg.
+      <fs_outtab>-spart = <fs_list>-spart.
+      <fs_outtab>-fkdat = <fs_list>-fkdat.
+      <fs_outtab>-posnr = <fs_list>-posnr.
+      <fs_outtab>-matnr = <fs_list>-matnr.
+      <fs_outtab>-arktx = <fs_list>-arktx.
+      <fs_outtab>-fkimg = <fs_list>-fkimg.
+      <fs_outtab>-netwr = <fs_list>-netwr.
+      <fs_outtab>-kunnr = <fs_list>-kunnr.
+      <fs_outtab>-name1 = <fs_list>-name1.
+      <fs_outtab>-ort01 = <fs_list>-ort01.
+      <fs_outtab>-land1 = <fs_list>-land1.
+      <fs_outtab>-pstlz = <fs_list>-pstlz.
+    ENDLOOP.
+
+
+
+
+    CALL FUNCTION 'POPUP_TO_CONFIRM'
+      EXPORTING
+        titlebar              = 'Yazdırma İşlemleri'
+        text_question         = 'Yazdırmak istiyor musunuz?'
+        text_button_1         = 'OK'
+        icon_button_1         = 'ICON_CHECKED'
+        text_button_2         = 'CANCEL'
+        icon_button_2         = 'ICON_CANCEL'
+        display_cancel_button = 'X'
+      IMPORTING
+        answer                = answer.
+
+    IF answer = '1'.
+      CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+        EXPORTING
+          formname = lv_fname
+*         VARIANT  = ' '
+*         DIRECT_CALL              = ' '
+        IMPORTING
+          fm_name  = lv_fmname
+ EXCEPTIONS
+         NO_FORM  = 1
+         NO_FUNCTION_MODULE       = 2
+         OTHERS   = 3.
+    ENDIF.
+
+
+    DATA(ls_musteri) = VALUE zfas_cikti_musteri( ).
+    DATA(ls_musteri_info) = gt_outtab[ 1 ].
+    ls_musteri = CORRESPONDING #( ls_musteri_info ).
+
+    CALL FUNCTION lv_fmname  " '/1BCDWB/SF0...... bu fonksiyonu her zaman çağramk zorundayiz ,kopyalamak olmaz
+      EXPORTING
+        gs_musteri = ls_musteri
+*       ARCHIVE_INDEX              =
+*       ARCHIVE_INDEX_TAB          =
+*       ARCHIVE_PARAMETERS         =
+*       CONTROL_PARAMETERS         =
+*       MAIL_APPL_OBJ              =
+*       MAIL_RECIPIENT             =
+*       MAIL_SENDER                =
+*       OUTPUT_OPTIONS             =
+*       USER_SETTINGS              = 'X'
+* IMPORTING
+*       DOCUMENT_OUTPUT_INFO       =
+*       JOB_OUTPUT_INFO            =
+*       JOB_OUTPUT_OPTIONS         =
+      TABLES
+        gt_outtab  = gt_outtab
+* EXCEPTIONS
+*       FORMATTING_ERROR           = 1
+*       INTERNAL_ERROR             = 2
+*       SEND_ERROR = 3
+*       USER_CANCELED              = 4
+*       OTHERS     = 5
+      .
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+  ENDFORM.
